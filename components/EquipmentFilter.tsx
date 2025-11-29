@@ -17,10 +17,20 @@ export default function EquipmentFilter() {
   )
 
   useEffect(() => {
-    fetch('/api/admin/categories')
+    fetch('/api/categories')
       .then(res => res.json())
-      .then(data => setCategories(data))
-      .catch(err => console.error('Error fetching categories:', err))
+      .then(data => {
+        if (Array.isArray(data)) {
+          setCategories(data)
+        } else {
+          console.error('Invalid categories data:', data)
+          setCategories([])
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching categories:', err)
+        setCategories([])
+      })
   }, [])
 
   const handleFilterChange = (categoryId: string | null) => {

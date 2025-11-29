@@ -3,17 +3,14 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const machinery = await prisma.machinery.findMany({
-      where: { isAvailable: true },
-      select: { category: true, categoryAz: true },
-      distinct: ['category'],
-      orderBy: { categoryAz: 'asc' },
+    const categories = await prisma.equipmentCategory.findMany({
+      where: { isActive: true },
+      orderBy: { order: 'asc' },
+      select: {
+        id: true,
+        nameAz: true,
+      },
     })
-    
-    const categories = machinery.map(m => ({
-      category: m.category,
-      categoryAz: m.categoryAz,
-    }))
     
     return NextResponse.json(categories)
   } catch (error) {
