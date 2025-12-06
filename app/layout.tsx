@@ -39,7 +39,7 @@ export default async function RootLayout({
   }
   
   return (
-    <html lang="az">
+    <html lang="az" suppressHydrationWarning>
       <body className={inter.className}>
         <AdminWrapper>{children}</AdminWrapper>
         <FooterWrapper />

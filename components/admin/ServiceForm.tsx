@@ -37,7 +37,10 @@ export default function ServiceForm({ service }: ServiceFormProps) {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          imageUrl: formData.imageUrl || null,
+        }),
       })
 
       if (!res.ok) {

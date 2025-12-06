@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import ImageUpload from './ImageUpload'
 
 interface CategoryFormProps {
   category?: {
@@ -10,6 +11,7 @@ interface CategoryFormProps {
     nameAz: string
     description?: string | null
     descriptionAz?: string | null
+    imageUrl?: string | null
     order: number
     isActive: boolean
   }
@@ -21,6 +23,7 @@ export default function CategoryForm({ category }: CategoryFormProps) {
   const [formData, setFormData] = useState({
     nameAz: category?.nameAz || '',
     descriptionAz: category?.descriptionAz || '',
+    imageUrl: category?.imageUrl || '',
     order: category?.order || 0,
     isActive: category?.isActive ?? true,
   })
@@ -64,6 +67,14 @@ export default function CategoryForm({ category }: CategoryFormProps) {
             onChange={(e) => setFormData({ ...formData, nameAz: e.target.value })}
             required
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+          />
+        </div>
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Şəkil</label>
+          <ImageUpload
+            value={formData.imageUrl}
+            onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+            label="Şəkil yüklə"
           />
         </div>
         <div className="md:col-span-2">
@@ -114,4 +125,7 @@ export default function CategoryForm({ category }: CategoryFormProps) {
     </form>
   )
 }
+
+
+
 

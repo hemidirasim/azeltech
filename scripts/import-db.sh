@@ -15,3 +15,6 @@ pg_restore -h localhost -p 5432 -U azer -d azeltech -c $1
 
 echo "Database imported successfully!"
 
+
+
+

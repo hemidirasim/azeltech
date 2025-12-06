@@ -261,3 +261,6 @@ export default function RentalForm({ machineryId, pricePerDay }: RentalFormProps
 
 
 
+
+
+

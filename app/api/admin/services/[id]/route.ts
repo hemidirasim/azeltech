@@ -16,7 +16,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         titleAz: data.titleAz,
         description: data.descriptionAz || '',
         descriptionAz: data.descriptionAz,
-        imageUrl: data.imageUrl,
+        imageUrl: data.imageUrl || null,
         order: data.order || 0,
         isActive: data.isActive ?? true,
       },

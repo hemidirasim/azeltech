@@ -1,7 +1,7 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
 import Slider from '@/components/Slider'
-import CategoryCarousel from '@/components/CategoryCarousel'
 import { format } from 'date-fns'
 
 async function getSliders() {
@@ -32,18 +32,38 @@ async function getHomeSection(sectionType: string) {
   }
 }
 
-async function getFeaturedMachinery() {
+async function getFeaturedEquipment() {
   try {
-    const machinery = await prisma.machinery.findMany({
-      where: { isAvailable: true },
+    const equipment = await prisma.equipmentPark.findMany({
+      where: { isActive: true },
+      include: {
+        category: true,
+      },
       take: 6,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { order: 'asc' },
     })
-    return machinery
+    return equipment
   } catch (error) {
-    console.error('Error fetching machinery:', error)
+    console.error('Error fetching equipment:', error)
     return []
   }
+}
+
+function getImageUrl(imageUrl: string | null | undefined): string {
+  if (!imageUrl) return ''
+  
+  // If it's already a full URL, return as is
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+    return imageUrl
+  }
+  
+  // If it starts with /, it's already a relative path
+  if (imageUrl.startsWith('/')) {
+    return imageUrl
+  }
+  
+  // Otherwise, assume it's in the uploads folder
+  return `/uploads/${imageUrl}`
 }
 
 async function getCategories() {
@@ -55,12 +75,27 @@ async function getCategories() {
     return categories.map(cat => ({ 
       category: cat.name, 
       categoryAz: cat.nameAz,
-      id: cat.id 
+      id: cat.id,
+      imageUrl: cat.imageUrl
     }))
   } catch (error) {
     console.error('Error fetching categories:', error)
     return []
   }
+}
+
+function getCategoryImageUrl(category: { imageUrl?: string | null; category?: string }): string {
+  if (category.imageUrl) {
+    if (category.imageUrl.startsWith('http://') || category.imageUrl.startsWith('https://')) {
+      return category.imageUrl
+    }
+    if (category.imageUrl.startsWith('/')) {
+      return category.imageUrl
+    }
+    return `/uploads/${category.imageUrl}`
+  }
+  // Fallback to default image
+  return getCategoryImage(category.category || '')
 }
 
 async function getLatestNews() {
@@ -79,14 +114,10 @@ async function getLatestNews() {
 
 async function getAboutPreview() {
   try {
-    const section = await prisma.aboutSection.findFirst({
-      where: { 
-        sectionType: 'company',
-        isActive: true 
-      },
-      orderBy: { order: 'asc' },
+    const about = await prisma.aboutSection.findFirst({
+      orderBy: { createdAt: 'desc' },
     })
-    return section
+    return about
   } catch (error) {
     console.error('Error fetching about preview:', error)
     return null
@@ -120,10 +151,10 @@ function getCategoryImage(category: string): string {
 }
 
 export default async function Home() {
-  const [sliders, ctaSection, featuredMachinery, categories, latestNews, aboutPreview, latestCareers] = await Promise.all([
+  const [sliders, ctaSection, featuredEquipment, categories, latestNews, aboutPreview, latestCareers] = await Promise.all([
     getSliders(),
     getHomeSection('cta'),
-    getFeaturedMachinery(),
+    getFeaturedEquipment(),
     getCategories(),
     getLatestNews(),
     getAboutPreview(),
@@ -161,38 +192,76 @@ export default async function Home() {
         <section className="py-16 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-center mb-12">Kateqoriyalar</h2>
-            <CategoryCarousel categories={categories} />
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {categories.map((cat) => (
+                <Link
+                  key={cat.id || cat.category}
+                  href={cat.id ? `/equipment?categoryId=${cat.id}` : `/equipment?category=${encodeURIComponent(cat.category)}`}
+                  className="block relative group"
+                >
+                  <div className="relative h-48 md:h-64 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+                    {/* Background Image */}
+                    <div
+                      className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
+                      style={{
+                        backgroundImage: `url(${getCategoryImageUrl(cat)})`,
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30"></div>
+                    </div>
+                    
+                    {/* Title Overlay - Centered */}
+                    <div className="absolute inset-0 flex items-center justify-center p-4">
+                      <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-white drop-shadow-2xl text-center">
+                        {cat.categoryAz}
+                      </h3>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
       )}
 
-      {/* Featured Machinery */}
-      {featuredMachinery.length > 0 && (
+      {/* Featured Equipment */}
+      {featuredEquipment.length > 0 && (
         <section className="py-16 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-center mb-12">Texnika Parkımız</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredMachinery.map((machine) => (
+              {featuredEquipment.map((item) => (
                 <Link
-                  key={machine.id}
-                  href={`/machinery/${machine.id}`}
-                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition"
+                  key={item.id}
+                  href={`/equipment/${item.id}`}
+                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition transform hover:-translate-y-1"
                 >
-                  <div className="h-48 bg-gray-200 flex items-center justify-center">
-                    {machine.imageUrl ? (
-                      <img src={machine.imageUrl} alt={machine.nameAz} className="w-full h-full object-cover" />
+                  <div className="relative h-48 bg-gray-200 flex items-center justify-center overflow-hidden">
+                    {item.imageUrl ? (
+                      <Image
+                        src={getImageUrl(item.imageUrl)}
+                        alt={item.titleAz || item.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        unoptimized={item.imageUrl.startsWith('http')}
+                      />
                     ) : (
-                      <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                      </div>
                     )}
                   </div>
                   <div className="p-6">
-                    <h3 className="text-xl font-semibold mb-2">{machine.nameAz}</h3>
-                    <p className="text-gray-600 mb-4 line-clamp-2">{machine.descriptionAz || machine.description}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-500">{machine.categoryAz}</span>
-                    </div>
+                    <h3 className="text-xl font-semibold mb-2">{item.titleAz || item.title}</h3>
+                    {item.category && (
+                      <p className="text-primary-600 text-sm mb-2">
+                        {item.category.nameAz || item.category.name}
+                      </p>
+                    )}
+                    <p className="text-gray-600 mb-4 line-clamp-2">{item.descriptionAz || item.description || ''}</p>
                   </div>
                 </Link>
               ))}
@@ -215,12 +284,14 @@ export default async function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               <div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  {aboutPreview.titleAz || aboutPreview.title || 'Haqqımızda'}
-                </h2>
-                {aboutPreview.contentAz || aboutPreview.content ? (
+                {aboutPreview.title && (
+                  <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                    {aboutPreview.title}
+                  </h2>
+                )}
+                {aboutPreview.content ? (
                   <p className="text-gray-700 leading-relaxed mb-6 line-clamp-6">
-                    {aboutPreview.contentAz || aboutPreview.content}
+                    {aboutPreview.content}
                   </p>
                 ) : null}
                 <Link
@@ -230,11 +301,24 @@ export default async function Home() {
                   Daha Ətraflı
                 </Link>
               </div>
-              <div className="h-64 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center">
-                <svg className="w-32 h-32 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
+              {aboutPreview.imageUrl ? (
+                <div className="relative h-64 rounded-lg overflow-hidden">
+                  <Image
+                    src={aboutPreview.imageUrl.startsWith('/') ? aboutPreview.imageUrl : `/uploads/${aboutPreview.imageUrl}`}
+                    alt={aboutPreview.title || 'Haqqımızda'}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    unoptimized={aboutPreview.imageUrl.startsWith('http')}
+                  />
+                </div>
+              ) : (
+                <div className="h-64 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center">
+                  <svg className="w-32 h-32 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -257,15 +341,18 @@ export default async function Home() {
               {latestNews.map((item) => (
                 <Link
                   key={item.id}
-                  href={`/news#${item.id}`}
+                  href={`/news/${item.id}`}
                   className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition transform hover:-translate-y-1"
                 >
                   {item.imageUrl ? (
-                    <div className="h-48 bg-gray-200">
-                      <img
-                        src={item.imageUrl}
-                        alt={item.titleAz}
-                        className="w-full h-full object-cover"
+                    <div className="relative h-48 bg-gray-200">
+                      <Image
+                        src={getImageUrl(item.imageUrl)}
+                        alt={item.titleAz || item.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        unoptimized={item.imageUrl.startsWith('http')}
                       />
                     </div>
                   ) : (

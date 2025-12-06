@@ -13,6 +13,7 @@ export async function GET() {
       select: {
         id: true,
         nameAz: true,
+        imageUrl: true,
       },
     })
     return NextResponse.json(categories)
@@ -33,6 +34,7 @@ export async function POST(request: NextRequest) {
         nameAz: data.nameAz,
         description: data.descriptionAz || '',
         descriptionAz: data.descriptionAz,
+        imageUrl: data.imageUrl || null,
         order: data.order || 0,
         isActive: data.isActive ?? true,
       },

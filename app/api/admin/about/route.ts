@@ -5,24 +5,27 @@ import { prisma } from '@/lib/prisma'
 export async function POST(request: NextRequest) {
   const admin = await getAdmin()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  
   try {
     const data = await request.json()
-    const section = await prisma.aboutSection.create({
+    
+    // Delete existing about section if exists
+    await prisma.aboutSection.deleteMany({})
+    
+    const about = await prisma.aboutSection.create({
       data: {
-        title: data.titleAz || '',
-        titleAz: data.titleAz,
-        content: data.contentAz || '',
-        contentAz: data.contentAz,
-        sectionType: data.sectionType,
-        order: data.order || 0,
-        isActive: data.isActive ?? true,
+        title: data.title || '',
+        content: data.content || '',
+        imageUrl: data.imageUrl || null,
       },
     })
-    return NextResponse.json(section)
+    
+    return NextResponse.json(about)
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create section' }, { status: 500 })
+    console.error('About creation error:', error)
+    return NextResponse.json(
+      { error: 'Failed to create about section' },
+      { status: 500 }
+    )
   }
 }
-
-
-

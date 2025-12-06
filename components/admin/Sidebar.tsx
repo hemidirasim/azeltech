@@ -20,6 +20,9 @@ const menuItems: MenuItem[] = [
   { name: 'Texnika Parkı', href: '/admin/equipment', icon: '🚜' },
   { name: 'Xəbərlər', href: '/admin/news', icon: '📰' },
   { name: 'Karyera', href: '/admin/careers', icon: '💼' },
+  { name: 'Sertifikatlar', href: '/admin/certificates', icon: '🏆' },
+  { name: 'Tərəfdaşlar', href: '/admin/partners', icon: '🤝' },
+  { name: 'Əlaqə Mesajları', href: '/admin/contacts', icon: '✉️' },
 ]
 
 export default function Sidebar() {

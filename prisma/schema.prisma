@@ -114,13 +114,9 @@ model Feature {
 
 model AboutSection {
   id          String   @id @default(cuid())
-  title       String?
-  titleAz     String?  @map("title_az")
-  content     String?  @db.Text
-  contentAz   String?  @map("content_az") @db.Text
-  sectionType String   @map("section_type") // company, mission, values, why-us
-  order       Int      @default(0)
-  isActive    Boolean  @default(true) @map("is_active")
+  title       String?  @map("title_az")
+  content     String?  @map("content_az") @db.Text
+  imageUrl    String?  @map("image_url")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
   
@@ -171,6 +167,7 @@ model EquipmentCategory {
   nameAz      String   @map("name_az")
   description String?  @db.Text
   descriptionAz String? @map("description_az") @db.Text
+  imageUrl    String?  @map("image_url")
   order       Int      @default(0)
   isActive    Boolean  @default(true) @map("is_active")
   createdAt   DateTime @default(now()) @map("created_at")
@@ -327,5 +324,19 @@ model ContactInfo {
   settings    SiteSettings? @relation(fields: [settingsId], references: [id])
   
   @@map("contact_info")
+}
+
+model ContactMessage {
+  id          String   @id @default(cuid())
+  name        String
+  email       String
+  phone       String
+  subject     String
+  message     String   @db.Text
+  isRead      Boolean  @default(false) @map("is_read")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  @@map("contact_messages")
 }
 

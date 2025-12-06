@@ -39,6 +39,7 @@ export default async function CategoriesPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Şəkil</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sıra</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ad</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
@@ -48,6 +49,19 @@ export default async function CategoriesPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {categories.map((category) => (
                 <tr key={category.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {category.imageUrl ? (
+                      <img
+                        src={category.imageUrl.startsWith('/') ? category.imageUrl : `/uploads/${category.imageUrl}`}
+                        alt={category.nameAz}
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                        <span className="text-gray-400 text-xs">Şəkil yox</span>
+                      </div>
+                    )}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{category.order}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{category.nameAz}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -72,4 +86,7 @@ export default async function CategoriesPage() {
     </div>
   )
 }
+
+
+
 

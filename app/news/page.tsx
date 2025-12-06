@@ -1,6 +1,24 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
 import { format } from 'date-fns'
+
+function getImageUrl(imageUrl: string | null | undefined): string {
+  if (!imageUrl) return ''
+  
+  // If it's already a full URL, return as is
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+    return imageUrl
+  }
+  
+  // If it starts with /, it's already a relative path
+  if (imageUrl.startsWith('/')) {
+    return imageUrl
+  }
+  
+  // Otherwise, assume it's in the uploads folder
+  return `/uploads/${imageUrl}`
+}
 
 async function getNews() {
   try {
@@ -35,16 +53,20 @@ export default async function NewsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {news.map((item) => (
-              <div
+              <Link
                 key={item.id}
+                href={`/news/${item.id}`}
                 className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition transform hover:-translate-y-1"
               >
                 {item.imageUrl ? (
-                  <div className="h-48 bg-gray-200">
-                    <img
-                      src={item.imageUrl}
-                      alt={item.titleAz}
-                      className="w-full h-full object-cover"
+                  <div className="relative h-48 bg-gray-200">
+                    <Image
+                      src={getImageUrl(item.imageUrl)}
+                      alt={item.titleAz || item.title}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      unoptimized={item.imageUrl.startsWith('http')}
                     />
                   </div>
                 ) : (
@@ -74,7 +96,7 @@ export default async function NewsPage() {
                     </p>
                   )}
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

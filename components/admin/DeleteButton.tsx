@@ -27,7 +27,7 @@ export default function DeleteButton({
     setLoading(true)
     try {
       const res = await fetch(endpoint, {
-        method: 'POST',
+        method: 'DELETE',
       })
 
       if (!res.ok) {
@@ -52,4 +52,7 @@ export default function DeleteButton({
     </button>
   )
 }
+
+
+
 
